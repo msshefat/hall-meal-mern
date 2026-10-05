@@ -1,7 +1,7 @@
 const path = require('path');
 const mongoose = require('mongoose');
 const { SETTING_DEFAULTS } = require('./time');
-const { Setting } = require('./models');
+const { Setting, User } = require('./models');
 
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
@@ -12,6 +12,14 @@ async function connectDb() {
   await mongoose.connect(uri);
   const existing = await Setting.findById('hall');
   if (!existing) await Setting.create({ _id: 'hall', ...SETTING_DEFAULTS });
+  await User.updateOne(
+    { email: 'admin@buphall.edu', studentCode: { $in: ['', null] } },
+    { $set: { studentCode: 'HALL-ADMIN' } }
+  );
+  await User.updateOne(
+    { email: 'staff@buphall.edu', studentCode: { $in: ['', null] } },
+    { $set: { studentCode: 'HALL-STAFF' } }
+  );
 }
 
 async function getSettings() {

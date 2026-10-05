@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from '../api'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 export default function Password() {
   const [form, setForm] = useState({ current: '', next: '' })
@@ -24,8 +24,8 @@ export default function Password() {
       <Banner message={note} />
       <Banner message={error} kind="error" />
       <form className="panel form-grid narrow" onSubmit={save}>
-        <label>Current password<input className="form-control" type="password" value={form.current} onChange={(event) => setForm({ ...form, current: event.target.value })} required /></label>
-        <label>New password<input className="form-control" type="password" minLength={6} value={form.next} onChange={(event) => setForm({ ...form, next: event.target.value })} required /></label>
+        <label>Current password <Star /><input className="form-control" type="password" value={form.current} onChange={(event) => setForm({ ...form, current: event.target.value })} required /></label>
+        <label>New password <Star /><input className="form-control" type="password" minLength={6} value={form.next} onChange={(event) => setForm({ ...form, next: event.target.value })} required /></label>
         <button className="btn btn-primary" type="submit">Update password</button>
       </form>
     </>

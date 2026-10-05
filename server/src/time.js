@@ -171,6 +171,15 @@ function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function validPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length >= 11 && digits.length <= 14;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 module.exports = {
   MEALS,
   MEAL_LABEL,
@@ -191,5 +200,7 @@ module.exports = {
   lockInstant,
   describeLock,
   clean,
-  isEmail
+  isEmail,
+  validPhone,
+  escapeRegex
 };

@@ -119,10 +119,10 @@ export function Login() {
           <h2>Welcome back</h2>
           {params.get('requested') ? <p className="banner is-ok">Request received. You can sign in after the hall office approves the account.</p> : null}
           {error ? <p className="banner is-bad">{error}</p> : null}
-          <label>Email
+          <label>Email <span className="req-star" aria-hidden="true">*</span>
             <input className="form-control" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" required />
           </label>
-          <label>Password
+          <label>Password <span className="req-star" aria-hidden="true">*</span>
             <input className="form-control" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required />
           </label>
           <button className="btn btn-primary btn-lg" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
@@ -174,7 +174,7 @@ export function Signup() {
         <div>
           <p className="eyebrow eyebrow-light">Student account</p>
           <h1>Ask the hall office to let you in.</h1>
-          <p>Send your name, student ID, and a password. You can sign in only after an administrator approves the request.</p>
+          <p>Send your name, an ID, a mobile number, and a password. A star marks every required field. You can sign in only after an administrator approves the request.</p>
         </div>
         <p className="aside-note">Staff and administrator accounts are created by the hall office.</p>
       </section>
@@ -182,16 +182,16 @@ export function Signup() {
         <form className="auth-card" onSubmit={onSubmit}>
           <h2>Request an account</h2>
           {error ? <p className="banner is-bad">{error}</p> : null}
-          <label>Full name<input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
-          <label>Email<input className="form-control" type="email" value={form.email} onChange={set('email')} required /></label>
+          <label>Full name <span className="req-star" aria-hidden="true">*</span><input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
+          <label>Email <span className="req-star" aria-hidden="true">*</span><input className="form-control" type="email" value={form.email} onChange={set('email')} required /></label>
           <div className="pair">
-            <label>Student ID<input className="form-control" value={form.studentCode} onChange={set('studentCode')} required /></label>
+            <label>ID <span className="req-star" aria-hidden="true">*</span><input className="form-control" value={form.studentCode} onChange={set('studentCode')} required /></label>
             <label>Room<input className="form-control" value={form.roomNo} onChange={set('roomNo')} /></label>
           </div>
-          <label>Phone<input className="form-control" value={form.phone} onChange={set('phone')} /></label>
+          <label>Mobile number <span className="req-star" aria-hidden="true">*</span><input className="form-control" value={form.phone} onChange={set('phone')} inputMode="tel" required /></label>
           <div className="pair">
-            <label>Password<input className="form-control" type="password" value={form.password} onChange={set('password')} minLength={6} required /></label>
-            <label>Confirm password<input className="form-control" type="password" value={form.confirm} onChange={set('confirm')} minLength={6} required /></label>
+            <label>Password <span className="req-star" aria-hidden="true">*</span><input className="form-control" type="password" value={form.password} onChange={set('password')} minLength={6} required /></label>
+            <label>Confirm password <span className="req-star" aria-hidden="true">*</span><input className="form-control" type="password" value={form.confirm} onChange={set('confirm')} minLength={6} required /></label>
           </div>
           <button className="btn btn-primary btn-lg" type="submit" disabled={busy}>{busy ? 'Sending…' : 'Send request'}</button>
           <p className="auth-switch">Already approved? <Link to="/login">Sign in</Link></p>

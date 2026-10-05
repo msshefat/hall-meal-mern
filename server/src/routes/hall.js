@@ -13,7 +13,7 @@ const { taka, fromPaisa, parseMoney } = require('../money');
 const {
   MEALS, MEAL_LABEL, todayDhaka, addDays, prettyDate, weekday, formatTime, prettyStamp,
   greeting, offsetPhrase, weekBounds, monthBounds, eachDate, validDate, describeLock,
-  clean, isEmail
+  clean, isEmail, validPhone, escapeRegex
 } = require('../time');
 const { presentUser, asyncRoute } = require('./auth');
 
@@ -198,6 +198,7 @@ router.get('/orders', requireRole('student'), asyncRoute(async (req, res) => {
           label: MEAL_LABEL[meal],
           items: menuMap.get(`${date}:${meal}`) || 'Menu not posted',
           on,
+          taken: Boolean(order && order[`${meal}Taken`]),
           locked: !lock.open,
           lockLabel: lock.label
         };
@@ -228,6 +229,9 @@ router.post('/orders/toggle', requireRole('student'), asyncRoute(async (req, res
   const lock = describeLock(date, meal, settings);
   if (!lock.open) return res.status(400).json({ message: `${MEAL_LABEL[meal]} is locked. ${lock.label}.` });
   const existing = await MealOrder.findOne({ userId: req.user._id, orderDate: date });
+  if (existing && existing[`${meal}Taken`]) {
+    return res.status(400).json({ message: `${MEAL_LABEL[meal]} is already marked taken, so it cannot be changed.` });
+  }
   const flags = {
     breakfast: existing ? existing.breakfast : false,
     lunch: existing ? existing.lunch : false,
@@ -455,9 +459,12 @@ router.get('/records', requireRole('staff', 'admin'), asyncRoute(async (req, res
         roomNo: student.roomNo || 'No room',
         studentCode: student.studentCode || '',
         status: student.status,
-        breakfast: Boolean(order && order.breakfast),
-        lunch: Boolean(order && order.lunch),
-        dinner: Boolean(order && order.dinner)
+        breakfast: Boolean(order && (order.breakfast || order.breakfastTaken)),
+        lunch: Boolean(order && (order.lunch || order.lunchTaken)),
+        dinner: Boolean(order && (order.dinner || order.dinnerTaken)),
+        breakfastTaken: Boolean(order && order.breakfastTaken),
+        lunchTaken: Boolean(order && order.lunchTaken),
+        dinnerTaken: Boolean(order && order.dinnerTaken)
       };
     })
   });
@@ -472,14 +479,17 @@ router.post('/records', requireRole('staff', 'admin'), asyncRoute(async (req, re
     dinner: new Set((req.body.dinner || []).map(String))
   };
   const students = await User.find({ role: 'student', status: { $ne: 'pending' } }).select('_id');
+  const priorOrders = await MealOrder.find({ orderDate: date, userId: { $in: students.map((student) => student._id) } });
+  const priorMap = new Map(priorOrders.map((order) => [String(order.userId), order]));
   for (const student of students) {
     const id = String(student._id);
+    const prior = priorMap.get(id);
     await saveMealFlags({
       userId: student._id,
       date,
-      breakfast: selected.breakfast.has(id),
-      lunch: selected.lunch.has(id),
-      dinner: selected.dinner.has(id),
+      breakfast: selected.breakfast.has(id) || Boolean(prior && prior.breakfastTaken),
+      lunch: selected.lunch.has(id) || Boolean(prior && prior.lunchTaken),
+      dinner: selected.dinner.has(id) || Boolean(prior && prior.dinnerTaken),
       actorId: req.user._id
     });
   }
@@ -491,6 +501,62 @@ router.post('/records', requireRole('staff', 'admin'), asyncRoute(async (req, re
       ? 'Meal sheet saved. Rates for posted bazar were recalculated.'
       : 'Meal sheet saved.'
   });
+}));
+
+router.get('/serving', requireRole('staff', 'admin'), asyncRoute(async (req, res) => {
+  const code = clean(req.query.code, 40);
+  if (code.length < 2) return res.status(400).json({ message: 'Enter an ID to search.' });
+  const person = await User.findOne({
+    status: { $ne: 'pending' },
+    studentCode: { $regex: `^${escapeRegex(code)}$`, $options: 'i' }
+  });
+  if (!person) return res.status(404).json({ message: 'No one with that ID is on the hall record.' });
+  const today = todayDhaka();
+  const order = await MealOrder.findOne({ userId: person._id, orderDate: today });
+  res.json({
+    date: today,
+    dateLabel: prettyDate(today),
+    person: {
+      id: String(person._id),
+      fullName: person.fullName,
+      studentCode: person.studentCode,
+      roomNo: person.roomNo || '',
+      role: person.role,
+      phone: person.phone || ''
+    },
+    meals: MEALS.map((meal) => ({
+      key: meal,
+      label: MEAL_LABEL[meal],
+      on: Boolean(order && order[meal]),
+      taken: Boolean(order && order[`${meal}Taken`]),
+      takenAt: order && order[`${meal}TakenAt`] ? prettyStamp(order[`${meal}TakenAt`]) : ''
+    }))
+  });
+}));
+
+router.post('/serving', requireRole('staff', 'admin'), asyncRoute(async (req, res) => {
+  const code = clean(req.body.code, 40);
+  const meal = MEALS.includes(req.body.meal) ? req.body.meal : null;
+  if (code.length < 2 || !meal) return res.status(400).json({ message: 'Search an ID and choose a meal.' });
+  const person = await User.findOne({
+    status: { $ne: 'pending' },
+    studentCode: { $regex: `^${escapeRegex(code)}$`, $options: 'i' }
+  });
+  if (!person) return res.status(404).json({ message: 'No one with that ID is on the hall record.' });
+  const today = todayDhaka();
+  const order = await MealOrder.findOne({ userId: person._id, orderDate: today });
+  if (!order || !order[meal]) {
+    return res.status(400).json({ message: `${person.fullName} is not on today's ${MEAL_LABEL[meal].toLowerCase()} list.` });
+  }
+  if (order[`${meal}Taken`]) {
+    return res.status(400).json({ message: `${MEAL_LABEL[meal]} is already marked taken for ${person.fullName}.` });
+  }
+  order[`${meal}Taken`] = true;
+  order[`${meal}TakenAt`] = new Date();
+  order.updatedBy = req.user._id;
+  await order.save();
+  await logActivity(req.user._id, 'Marked meal taken', `${person.fullName} · ${person.studentCode} · ${MEAL_LABEL[meal]}`);
+  res.json({ message: `${MEAL_LABEL[meal]} marked taken for ${person.fullName}. They cannot take it again today.` });
 }));
 
 router.get('/costs', requireRole('staff', 'admin'), asyncRoute(async (req, res) => {
@@ -632,6 +698,7 @@ router.post('/users', requireRole('admin'), asyncRoute(async (req, res) => {
   const error = validateUser(form, true);
   if (error) return res.status(400).json({ message: error });
   if (await User.exists({ email: form.email })) return res.status(400).json({ message: 'That email is already used.' });
+  if (await takenCode(form.studentCode)) return res.status(400).json({ message: 'That ID is already on the hall record.' });
   const passwordHash = await bcrypt.hash(form.password, 10);
   const user = await User.create({
     fullName: form.fullName,
@@ -671,6 +738,9 @@ router.put('/users/:id', requireRole('admin'), asyncRoute(async (req, res) => {
   if (error) return res.status(400).json({ message: error });
   if (await User.exists({ email: form.email, _id: { $ne: existing._id } })) {
     return res.status(400).json({ message: 'That email is already used.' });
+  }
+  if (await takenCode(form.studentCode, existing._id)) {
+    return res.status(400).json({ message: 'That ID is already on the hall record.' });
   }
   existing.fullName = form.fullName;
   existing.email = form.email;
@@ -822,10 +892,17 @@ function readUser(body, isNew) {
 function validateUser(form, isNew) {
   if (form.fullName.length < 2) return 'Enter the person\'s name.';
   if (!isEmail(form.email)) return 'Enter a valid email.';
-  if (form.role === 'student' && form.studentCode.length < 2) return 'Students need an ID number.';
+  if (form.studentCode.length < 2) return 'Enter an ID number.';
+  if (!validPhone(form.phone)) return 'Enter an 11-digit mobile number.';
   if (isNew && form.password.length < 6) return 'Set a password of at least 6 characters.';
   if (!isNew && form.password && form.password.length < 6) return 'A replacement password needs at least 6 characters.';
   return null;
+}
+
+async function takenCode(code, exceptId) {
+  const query = { studentCode: { $regex: `^${escapeRegex(code)}$`, $options: 'i' } };
+  if (exceptId) query._id = { $ne: exceptId };
+  return Boolean(await User.exists(query));
 }
 
 async function otherActiveAdmins(id) {

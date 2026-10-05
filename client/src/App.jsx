@@ -11,6 +11,8 @@ import Stats from './pages/Stats'
 import Complaints from './pages/Complaints'
 import Notices from './pages/Notices'
 import Password from './pages/Password'
+import Profile from './pages/Profile'
+import Serving from './pages/Serving'
 import Records from './pages/Records'
 import Costs from './pages/Costs'
 import Reports from './pages/Reports'
@@ -67,6 +69,8 @@ export default function App() {
           <Route path="complaints" element={<Complaints />} />
           <Route path="notices" element={<Notices />} />
           <Route path="password" element={<Password />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="serving" element={<Serving />} />
           <Route path="records" element={<Records />} />
           <Route path="costs" element={<Costs />} />
           <Route path="reports" element={<Reports />} />

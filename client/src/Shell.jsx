@@ -16,6 +16,7 @@ const LINKS = {
   staff: [
     ['/app', 'Mess desk', true],
     ['/app/records', 'Meal records'],
+    ['/app/serving', 'Meal taken'],
     ['/app/costs', 'Bazar costs'],
     ['/app/menu', 'Menu board'],
     ['/app/reports', 'Reports'],
@@ -26,6 +27,7 @@ const LINKS = {
     ['/app/users', 'People'],
     ['/app/menu', 'Menus'],
     ['/app/records', 'Meal records'],
+    ['/app/serving', 'Meal taken'],
     ['/app/costs', 'Bazar costs'],
     ['/app/settings', 'Lock times'],
     ['/app/balances', 'Balances'],
@@ -69,6 +71,7 @@ export default function Shell() {
           ))}
         </nav>
         <div className="sidebar-foot">
+          <NavLink to="/app/profile" className={({ isActive }) => `side-link ${isActive ? 'is-active' : ''}`} onClick={() => setOpen(false)}>Profile</NavLink>
           <NavLink to="/app/password" className={({ isActive }) => `side-link ${isActive ? 'is-active' : ''}`} onClick={() => setOpen(false)}>Password</NavLink>
           <button className="side-link side-button" type="button" onClick={signOut}>Sign out</button>
         </div>
@@ -106,6 +109,10 @@ export function PageHead({ eyebrow, title, lede, children }) {
       {children}
     </header>
   )
+}
+
+export function Star() {
+  return <span className="req-star" aria-hidden="true">*</span>
 }
 
 export function Banner({ message, kind = 'ok' }) {

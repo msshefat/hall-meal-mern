@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const { getSettings } = require('../db');
 const { logActivity } = require('../billing');
-const { clean, isEmail, hallNowLabel } = require('../time');
+const { clean, isEmail, validPhone, escapeRegex, hallNowLabel } = require('../time');
 const { taka } = require('../money');
 
 const router = express.Router();
@@ -88,14 +88,15 @@ router.post('/signup', asyncRoute(async (req, res) => {
   const confirm = String(req.body.confirm || '');
   if (form.fullName.length < 2) return res.status(400).json({ message: 'Enter your full name.' });
   if (!isEmail(form.email)) return res.status(400).json({ message: 'Enter a valid email.' });
-  if (form.studentCode.length < 2) return res.status(400).json({ message: 'Enter your student ID.' });
+  if (form.studentCode.length < 2) return res.status(400).json({ message: 'Enter an ID number.' });
+  if (!validPhone(form.phone)) return res.status(400).json({ message: 'Enter an 11-digit mobile number.' });
   if (password.length < 6) return res.status(400).json({ message: 'Choose a password of at least 6 characters.' });
   if (password !== confirm) return res.status(400).json({ message: 'The two passwords do not match.' });
   if (await User.exists({ email: form.email })) {
     return res.status(400).json({ message: 'That email is already on the hall record.' });
   }
-  if (await User.exists({ studentCode: form.studentCode })) {
-    return res.status(400).json({ message: 'That student ID is already on the hall record.' });
+  if (await User.exists({ studentCode: { $regex: `^${escapeRegex(form.studentCode)}$`, $options: 'i' } })) {
+    return res.status(400).json({ message: 'That ID is already on the hall record.' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({ ...form, passwordHash, role: 'student', status: 'pending' });
@@ -103,6 +104,29 @@ router.post('/signup', asyncRoute(async (req, res) => {
   res.status(201).json({
     message: 'Request received. You can sign in after the hall office approves the account.'
   });
+}));
+
+router.put('/profile', asyncRoute(async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: 'Sign in first.' });
+  const fullName = clean(req.body.fullName, 120);
+  const studentCode = clean(req.body.studentCode, 40);
+  const roomNo = clean(req.body.roomNo, 40);
+  const phone = clean(req.body.phone, 30);
+  if (fullName.length < 2) return res.status(400).json({ message: 'Enter your full name.' });
+  if (studentCode.length < 2) return res.status(400).json({ message: 'Enter an ID number.' });
+  if (!validPhone(phone)) return res.status(400).json({ message: 'Enter an 11-digit mobile number.' });
+  const clash = await User.findOne({
+    _id: { $ne: req.user._id },
+    studentCode: { $regex: `^${escapeRegex(studentCode)}$`, $options: 'i' }
+  });
+  if (clash) return res.status(400).json({ message: 'That ID is already on the hall record.' });
+  req.user.fullName = fullName;
+  req.user.studentCode = studentCode;
+  req.user.roomNo = roomNo;
+  req.user.phone = phone;
+  await req.user.save();
+  await logActivity(req.user._id, 'Updated profile', fullName);
+  res.json({ message: 'Profile saved.', user: presentUser(req.user) });
 }));
 
 module.exports = router;

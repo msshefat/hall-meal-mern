@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 export default function Settings() {
   const [form, setForm] = useState(null)
@@ -48,8 +48,8 @@ export default function Settings() {
       <Banner message={error} kind="error" />
       <form className="panel form-grid" onSubmit={save}>
         <div className="pair">
-          <label>Hall name<input className="form-control" value={form.hallName} onChange={(event) => setForm({ ...form, hallName: event.target.value })} /></label>
-          <label>Days students can book ahead
+          <label>Hall name <Star /><input className="form-control" value={form.hallName} onChange={(event) => setForm({ ...form, hallName: event.target.value })} required /></label>
+          <label>Days students can book ahead <Star />
             <input className="form-control" type="number" min="1" max="14" value={form.orderWindowDays} onChange={(event) => setForm({ ...form, orderWindowDays: event.target.value })} />
           </label>
         </div>
@@ -57,10 +57,10 @@ export default function Settings() {
           <fieldset className="lock-card" key={meal.key}>
             <legend>{meal.label}</legend>
             <div className="pair">
-              <label>Days before the meal
+              <label>Days before the meal <Star />
                 <input className="form-control" type="number" min="0" max="3" value={meal.offsetDays} onChange={(event) => updateMeal(meal.key, 'offsetDays', event.target.value)} />
               </label>
-              <label>Clock time
+              <label>Clock time <Star />
                 <input className="form-control" type="time" value={meal.time} onChange={(event) => updateMeal(meal.key, 'time', event.target.value)} />
               </label>
             </div>

@@ -38,6 +38,12 @@ const orderSchema = new mongoose.Schema({
   breakfast: { type: Boolean, default: false },
   lunch: { type: Boolean, default: false },
   dinner: { type: Boolean, default: false },
+  breakfastTaken: { type: Boolean, default: false },
+  lunchTaken: { type: Boolean, default: false },
+  dinnerTaken: { type: Boolean, default: false },
+  breakfastTakenAt: Date,
+  lunchTakenAt: Date,
+  dinnerTakenAt: Date,
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 orderSchema.index({ userId: 1, orderDate: 1 }, { unique: true });

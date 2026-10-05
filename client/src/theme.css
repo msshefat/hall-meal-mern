@@ -238,6 +238,7 @@ code {
   padding: 1.4rem;
 }
 .auth-card h2 { margin-bottom: 0.8rem; }
+.req-star { color: var(--clay); font-weight: 700; margin-left: 0.15rem; }
 .auth-card label, .form-grid label, .panel label, .lock-card label {
   display: grid;
   gap: 0.35rem;
@@ -550,6 +551,10 @@ textarea.form-control { min-height: 6rem; resize: vertical; }
 }
 .tick:hover { transform: translateY(-2px); border-color: var(--brass); }
 .tick.is-on { background: var(--moss); border-color: #b7d7c6; color: var(--good); }
+.tick.is-taken { cursor: not-allowed; opacity: 0.85; }
+.tick.is-taken:hover { transform: none; }
+.serving-card { margin-top: 1rem; }
+.serving-card h2 { margin-bottom: 0.25rem; }
 .tick input { accent-color: var(--canopy); }
 
 .bar-row {

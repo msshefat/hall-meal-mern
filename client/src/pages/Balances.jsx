@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 export default function Balances() {
   const [students, setStudents] = useState(null)
@@ -33,7 +33,7 @@ export default function Balances() {
       <Banner message={error} kind="error" />
       <form className="panel form-grid" onSubmit={save}>
         <div className="pair-wide">
-          <label>Student
+          <label>Student <Star />
             <select className="form-select" value={form.userId} onChange={(event) => setForm({ ...form, userId: event.target.value })} required>
               <option value="">Choose a student</option>
               {(students || []).map((student) => <option key={student.id} value={student.id}>{student.fullName} · {student.roomNo || 'No room'}</option>)}
@@ -47,7 +47,7 @@ export default function Balances() {
           </label>
         </div>
         <div className="pair">
-          <label>Amount (৳)<input className="form-control" inputMode="decimal" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} required /></label>
+          <label>Amount (৳) <Star /><input className="form-control" inputMode="decimal" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} required /></label>
           <label>Note<input className="form-control" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} /></label>
         </div>
         <button className="btn btn-primary" type="submit">Record</button>

@@ -20,7 +20,10 @@ export default function Records() {
   }, [date])
 
   function toggle(id, meal) {
-    setSheet((rows) => rows.map((row) => row.id === id ? { ...row, [meal]: !row[meal] } : row))
+    setSheet((rows) => rows.map((row) => {
+      if (row.id !== id || row[`${meal}Taken`]) return row
+      return { ...row, [meal]: !row[meal] }
+    }))
   }
 
   async function save(event) {
@@ -65,9 +68,9 @@ export default function Records() {
                   </td>
                   {['breakfast', 'lunch', 'dinner'].map((meal) => (
                     <td key={meal}>
-                      <label className={`tick ${student[meal] ? 'is-on' : ''}`}>
-                        <input type="checkbox" checked={student[meal]} onChange={() => toggle(student.id, meal)} />
-                        {student[meal] ? 'On' : 'Off'}
+                      <label className={`tick ${student[meal] ? 'is-on' : ''} ${student[`${meal}Taken`] ? 'is-taken' : ''}`}>
+                        <input type="checkbox" checked={student[meal]} disabled={student[`${meal}Taken`]} onChange={() => toggle(student.id, meal)} />
+                        {student[`${meal}Taken`] ? 'Taken' : student[meal] ? 'On' : 'Off'}
                       </label>
                     </td>
                   ))}

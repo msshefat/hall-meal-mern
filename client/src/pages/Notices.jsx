@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { useAuth } from '../App'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 export default function Notices() {
   const { user } = useAuth()
@@ -50,8 +50,8 @@ function ManageNotices() {
       <Banner message={note} />
       <Banner message={error} kind="error" />
       <form className="panel form-grid narrow" onSubmit={publish}>
-        <label>Title<input className="form-control" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required /></label>
-        <label>Notice<textarea className="form-control" rows={4} value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} required /></label>
+        <label>Title <Star /><input className="form-control" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required /></label>
+        <label>Notice <Star /><textarea className="form-control" rows={4} value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} required /></label>
         <button className="btn btn-primary" type="submit">Publish</button>
       </form>
       <div className="stack">

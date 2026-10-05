@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 const empty = { fullName: '', email: '', role: 'student', studentCode: '', roomNo: '', phone: '', status: 'active', password: '', balance: '0' }
 
@@ -34,29 +34,29 @@ export default function UserForm() {
 
   return (
     <>
-      <PageHead eyebrow="Directory" title={editing ? 'Edit person' : 'Add person'} lede={editing ? 'Leave the password blank to keep the current one.' : 'Share the password. They can change it after signing in.'} />
+      <PageHead eyebrow="Directory" title={editing ? 'Edit person' : 'Add person'} lede={editing ? 'Leave the password blank to keep the current one. ID and mobile stay required.' : 'Every person needs an ID and a mobile number. Share the password. They can change it after signing in.'} />
       <form className="panel form-grid narrow" onSubmit={save}>
         <Banner message={error} kind="error" />
-        <label>Full name<input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
-        <label>Email<input className="form-control" type="email" value={form.email} onChange={set('email')} required /></label>
-        <label>Role
+        <label>Full name <Star /><input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
+        <label>Email <Star /><input className="form-control" type="email" value={form.email} onChange={set('email')} required /></label>
+        <label>Role <Star />
           <select className="form-select" value={form.role} onChange={set('role')}>
             {['student', 'staff', 'admin'].map((role) => <option key={role} value={role}>{role}</option>)}
           </select>
         </label>
         <div className="pair">
-          <label>Student ID<input className="form-control" value={form.studentCode || ''} onChange={set('studentCode')} /></label>
+          <label>ID <Star /><input className="form-control" value={form.studentCode || ''} onChange={set('studentCode')} required /></label>
           <label>Room<input className="form-control" value={form.roomNo || ''} onChange={set('roomNo')} /></label>
         </div>
-        <label>Phone<input className="form-control" value={form.phone || ''} onChange={set('phone')} /></label>
-        <label>Status
+        <label>Mobile number <Star /><input className="form-control" value={form.phone || ''} onChange={set('phone')} inputMode="tel" required /></label>
+        <label>Status <Star />
           <select className="form-select" value={form.status} onChange={set('status')}>
             <option value="active">Active</option>
             <option value="pending">Waiting for approval</option>
             <option value="inactive">Inactive</option>
           </select>
         </label>
-        <label>{editing ? 'New password (optional)' : 'Password'}
+        <label>{editing ? 'New password (optional)' : <>Password <Star /></>}
           <input className="form-control" type="text" value={form.password} onChange={set('password')} minLength={editing ? undefined : 6} required={!editing} autoComplete="new-password" />
         </label>
         {!editing ? <label>Opening balance for a student (৳)<input className="form-control" type="number" min="0" step="0.01" value={form.balance} onChange={set('balance')} /></label> : null}

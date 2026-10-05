@@ -49,14 +49,14 @@ export default function Orders() {
                 <button
                   key={meal.key}
                   type="button"
-                  className={`meal-card ${meal.on ? 'is-on' : 'is-off'} ${meal.locked ? 'is-locked' : ''}`}
-                  disabled={meal.locked}
+                  className={`meal-card ${meal.on ? 'is-on' : 'is-off'} ${meal.locked || meal.taken ? 'is-locked' : ''}`}
+                  disabled={meal.locked || meal.taken}
                   onClick={() => toggle(day, meal)}
                 >
                   <span className="meal-name">{meal.label}</span>
                   <span className="meal-menu">{meal.items}</span>
-                  <span className="meal-lock">{meal.lockLabel}</span>
-                  <span className="meal-state">{meal.locked ? 'Locked' : meal.on ? 'On your list' : 'Off'}</span>
+                  <span className="meal-lock">{meal.taken ? 'Already served at the mess' : meal.lockLabel}</span>
+                  <span className="meal-state">{meal.taken ? 'Taken' : meal.locked ? 'Locked' : meal.on ? 'On your list' : 'Off'}</span>
                 </button>
               ))}
             </div>

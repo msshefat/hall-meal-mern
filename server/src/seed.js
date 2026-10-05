@@ -74,6 +74,7 @@ async function main() {
     email: 'admin@buphall.edu',
     passwordHash: adminHash,
     role: 'admin',
+    studentCode: 'HALL-ADMIN',
     phone: '01711000001'
   });
   const staff = await User.create({
@@ -81,6 +82,7 @@ async function main() {
     email: 'staff@buphall.edu',
     passwordHash: staffHash,
     role: 'staff',
+    studentCode: 'HALL-STAFF',
     phone: '01711000002'
   });
 

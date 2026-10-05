@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { useAuth } from '../App'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Star } from '../Shell'
 
 export default function Complaints() {
   const { user } = useAuth()
@@ -36,8 +36,8 @@ function StudentComplaints() {
       <Banner message={note} />
       <Banner message={error} kind="error" />
       <form className="panel form-grid narrow" onSubmit={send}>
-        <label>Subject<input className="form-control" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} required /></label>
-        <label>Message<textarea className="form-control" rows={4} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required /></label>
+        <label>Subject <Star /><input className="form-control" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} required /></label>
+        <label>Message <Star /><textarea className="form-control" rows={4} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required /></label>
         <button className="btn btn-primary" type="submit">Send to the office</button>
       </form>
       <ComplaintList rows={rows} />
