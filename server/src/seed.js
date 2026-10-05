@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { connectDb } = require('./db');
 const {
-  User, Menu, Complaint, Announcement, Activity, MealOrder, BazarCost, MealRate, Ledger, MoneyRequest
+  User, UserImage, Menu, Complaint, Announcement, Activity, MealOrder, BazarCost, MealRate, Ledger, MoneyRequest
 } = require('./models');
 const { postBalance, saveMealFlags, recalculate } = require('./billing');
 const { todayDhaka, addDays } = require('./time');
@@ -52,6 +52,7 @@ async function clearDemo() {
     BazarCost.deleteMany({}),
     MealOrder.deleteMany({}),
     Menu.deleteMany({}),
+    UserImage.deleteMany({}),
     User.deleteMany({})
   ]);
 }

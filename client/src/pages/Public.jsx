@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../App'
+import { pictureError } from '../pictures'
 
 export function Landing() {
   const [board, setBoard] = useState(null)
@@ -146,17 +147,49 @@ export function Signup() {
   const auth = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', email: '', studentCode: '', roomNo: '', phone: '', password: '', confirm: '' })
+  const [photo, setPhoto] = useState(null)
+  const [idCard, setIdCard] = useState(null)
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [idUrl, setIdUrl] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   function set(key) {
     return (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
+  }
+  function choosePicture(kind) {
+    return (event) => {
+      const file = event.target.files && event.target.files[0]
+      if (!file) return
+      const problem = pictureError(file)
+      if (problem) {
+        setError(problem)
+        event.target.value = ''
+        return
+      }
+      setError('')
+      const url = file ? URL.createObjectURL(file) : ''
+      if (kind === 'photo') {
+        if (photoUrl) URL.revokeObjectURL(photoUrl)
+        setPhoto(file || null)
+        setPhotoUrl(url)
+      } else {
+        if (idUrl) URL.revokeObjectURL(idUrl)
+        setIdCard(file || null)
+        setIdUrl(url)
+      }
+    }
   }
   async function onSubmit(event) {
     event.preventDefault()
     setBusy(true)
     setError('')
     try {
-      await api.post('/api/signup', form)
+      if (!idCard) throw new Error('Add a photo of your ID card.')
+      const body = new FormData()
+      Object.entries(form).forEach(([key, value]) => body.append(key, value))
+      body.append('idCard', idCard)
+      if (photo) body.append('photo', photo)
+      await api.upload('/api/signup', body)
       navigate('/login?requested=1')
     } catch (err) {
       setError(err.message)
@@ -174,7 +207,7 @@ export function Signup() {
         <div>
           <p className="eyebrow eyebrow-light">Student account</p>
           <h1>Ask the hall office to let you in.</h1>
-          <p>Send your name, an ID, a mobile number, and a password. A star marks every required field. You can sign in only after an administrator approves the request.</p>
+          <p>Send your name, an ID, a photo of that ID card, a mobile number, and a password. A star marks every required field. You can sign in only after an administrator approves the request.</p>
         </div>
         <p className="aside-note">Staff and administrator accounts are created by the hall office.</p>
       </section>
@@ -189,6 +222,16 @@ export function Signup() {
             <label>Room<input className="form-control" value={form.roomNo} onChange={set('roomNo')} /></label>
           </div>
           <label>Mobile number <span className="req-star" aria-hidden="true">*</span><input className="form-control" value={form.phone} onChange={set('phone')} inputMode="tel" required /></label>
+          <label>Profile photo
+            <input className="form-control" name="photo" type="file" accept="image/jpeg,image/png" onChange={choosePicture('photo')} />
+          </label>
+          {photoUrl ? <img className="portrait is-large" src={photoUrl} alt="" /> : null}
+          <p className="stat-hint">Optional. JPG or PNG, 1 MB or smaller.</p>
+          <label>ID card <span className="req-star" aria-hidden="true">*</span>
+            <input className="form-control" name="idCard" type="file" accept="image/jpeg,image/png" onChange={choosePicture('idCard')} required />
+          </label>
+          {idUrl ? <img className="id-card" src={idUrl} alt="Selected ID card" /> : null}
+          <p className="stat-hint">A clear photo of your university ID card. JPG or PNG, 1 MB or smaller.</p>
           <div className="pair">
             <label>Password <span className="req-star" aria-hidden="true">*</span><input className="form-control" type="password" value={form.password} onChange={set('password')} minLength={6} required /></label>
             <label>Confirm password <span className="req-star" aria-hidden="true">*</span><input className="form-control" type="password" value={form.confirm} onChange={set('confirm')} minLength={6} required /></label>

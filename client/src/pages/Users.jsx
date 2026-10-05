@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../App'
-import { Banner, PageHead } from '../Shell'
+import { Banner, PageHead, Portrait } from '../Shell'
 
 export default function Users() {
   const auth = useAuth()
@@ -55,13 +55,19 @@ export default function Users() {
           <p className="lede tight">These students cannot sign in until you approve them.</p>
           <div className="table-wrap">
             <table className="sheet">
-              <thead><tr><th>Name</th><th>Student ID</th><th>Room</th><th></th></tr></thead>
+              <thead><tr><th>Name</th><th>Student ID</th><th>Room</th><th>ID card</th><th></th></tr></thead>
               <tbody>
                 {data.pending.map((user) => (
                   <tr key={user.id}>
-                    <td><strong>{user.fullName}</strong><small>{user.email}</small></td>
+                    <td>
+                      <div className="person-line">
+                        <Portrait user={user} />
+                        <div><strong>{user.fullName}</strong><small>{user.email}</small></div>
+                      </div>
+                    </td>
                     <td>{user.studentCode || '—'}</td>
                     <td>{user.roomNo || '—'}{user.phone ? <small>{user.phone}</small> : null}</td>
+                    <td>{user.hasIdCard ? <a href={`/api/media/${user.id}/id-card`} target="_blank" rel="noreferrer"><img className="id-thumb" src={`/api/media/${user.id}/id-card`} alt={`ID card for ${user.fullName}`} /></a> : '—'}</td>
                     <td className="row-actions">
                       <button className="is-approve" type="button" onClick={() => setStatus(user.id, 'active')}>Approve</button>
                       <button type="button" onClick={() => setStatus(user.id, 'inactive')}>Decline</button>
@@ -85,7 +91,12 @@ export default function Users() {
             <tbody>
               {data.directory.map((user) => (
                 <tr key={user.id}>
-                  <td><strong>{user.fullName}</strong><small>{user.email}</small></td>
+                  <td>
+                    <div className="person-line">
+                      <Portrait user={user} />
+                      <div><strong>{user.fullName}</strong><small>{user.email}</small></div>
+                    </div>
+                  </td>
                   <td><span className={`status st-${user.role}`}>{user.role}</span></td>
                   <td>{user.roomNo || '—'}{user.studentCode ? <small>{user.studentCode}</small> : null}</td>
                   <td className="num">{user.role === 'student' ? user.balanceLabel : '—'}</td>

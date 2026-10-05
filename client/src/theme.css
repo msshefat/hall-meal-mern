@@ -385,6 +385,37 @@ textarea.form-control { min-height: 6rem; resize: vertical; }
 }
 .topbar-clock { margin-right: auto; color: var(--ink-soft); font-size: 0.92rem; }
 .who { display: flex; align-items: center; gap: 0.7rem; }
+.portrait {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--moss);
+  color: var(--forest-deep);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  font-family: var(--serif);
+  font-weight: 700;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.portrait.is-large { width: 88px; height: 88px; font-size: 1.8rem; }
+.id-card, .id-thumb {
+  display: block;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.id-card { width: 280px; max-width: 100%; height: 176px; }
+.id-thumb { width: 72px; height: 48px; }
+.picture-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+.picture-row .portrait,
+.picture-row .id-card,
+.picture-row .empty { margin: 0.45rem 0; }
+.person-line { display: flex; align-items: center; gap: 0.65rem; }
+.person-line small { display: block; }
 .who-name { font-weight: 600; }
 .who-role { color: var(--ink-soft); font-size: 0.78rem; text-transform: capitalize; }
 .balance-chip {
@@ -630,7 +661,7 @@ blockquote {
 :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 
 @media (max-width: 991px) {
-  .hero, .auth-shell, .feature-grid, .role-grid, .stat-grid, .split, .meal-grid, .cost-grid, .app-shell {
+  .hero, .auth-shell, .feature-grid, .role-grid, .stat-grid, .split, .meal-grid, .cost-grid, .app-shell, .picture-row {
     grid-template-columns: 1fr;
   }
   .topbar { flex-wrap: wrap; gap: 0.45rem 0.6rem; padding: 0.75rem 0.85rem; }

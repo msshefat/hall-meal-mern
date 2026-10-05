@@ -82,6 +82,7 @@ export default function Shell() {
           <p className="topbar-clock">Hall time · {auth.hallNow}</p>
           <div className="who">
             {auth.user.role === 'student' ? <a className={`balance-chip ${auth.user.balance < 0 ? 'is-due' : ''}`} href="/app/billing">{auth.user.balanceLabel}</a> : null}
+            <Portrait user={auth.user} />
             <div>
               <p className="who-name">{auth.user.fullName}</p>
               <p className="who-role">{auth.user.role}</p>
@@ -122,6 +123,14 @@ export function PageHead({ eyebrow, title, lede, children }) {
 
 export function Star() {
   return <span className="req-star" aria-hidden="true">*</span>
+}
+
+export function Portrait({ user, className = 'portrait' }) {
+  const letter = (user?.fullName || '?').trim().charAt(0).toUpperCase() || '?'
+  if (user?.hasPhoto && user.id) {
+    return <img className={className} src={`/api/media/${user.id}/photo`} alt="" />
+  }
+  return <span className={`${className} is-empty`} aria-hidden="true">{letter}</span>
 }
 
 export function Banner({ message, kind = 'ok' }) {

@@ -9,8 +9,19 @@ const userSchema = new mongoose.Schema({
   roomNo: { type: String, default: '' },
   phone: { type: String, default: '' },
   status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
-  balancePaisa: { type: Number, default: 0 }
+  balancePaisa: { type: Number, default: 0 },
+  hasPhoto: { type: Boolean, default: false },
+  hasIdCard: { type: Boolean, default: false }
 }, { timestamps: true });
+
+const userImageSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  kind: { type: String, enum: ['photo', 'idCard'], required: true },
+  contentType: { type: String, required: true },
+  data: { type: Buffer, required: true },
+  bytes: { type: Number, required: true }
+}, { timestamps: true });
+userImageSchema.index({ userId: 1, kind: 1 }, { unique: true });
 
 const settingSchema = new mongoose.Schema({
   _id: { type: String, default: 'hall' },
@@ -121,6 +132,7 @@ const lockSchema = new mongoose.Schema({
 
 module.exports = {
   User: mongoose.model('User', userSchema),
+  UserImage: mongoose.model('UserImage', userImageSchema),
   Setting: mongoose.model('Setting', settingSchema),
   Menu: mongoose.model('Menu', menuSchema),
   MealOrder: mongoose.model('MealOrder', orderSchema),

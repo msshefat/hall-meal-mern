@@ -1,10 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User, MoneyRequest } = require('../models');
+const mongoose = require('mongoose');
+const { User, UserImage, MoneyRequest } = require('../models');
 const { getSettings } = require('../db');
 const { logActivity } = require('../billing');
 const { clean, isEmail, validPhone, escapeRegex, hallNowLabel } = require('../time');
 const { taka, inDebt, orderingBlocked } = require('../money');
+const { checkImage, acceptImages } = require('../images');
 
 const router = express.Router();
 
@@ -27,7 +29,9 @@ function presentUser(user) {
     balance: paisa / 100,
     balanceLabel: taka(paisa / 100),
     inDebt: inDebt(paisa),
-    orderingBlocked: orderingBlocked(paisa)
+    orderingBlocked: orderingBlocked(paisa),
+    hasPhoto: Boolean(user.hasPhoto),
+    hasIdCard: Boolean(user.hasIdCard)
   };
 }
 
@@ -81,7 +85,9 @@ router.post('/logout', (req, res) => {
   req.session.destroy(finish);
 });
 
-router.post('/signup', asyncRoute(async (req, res) => {
+const pictureFields = [{ name: 'photo', maxCount: 1 }, { name: 'idCard', maxCount: 1 }];
+
+router.post('/signup', acceptImages(pictureFields), asyncRoute(async (req, res) => {
   const form = {
     fullName: clean(req.body.fullName, 120),
     email: clean(req.body.email, 160).toLowerCase(),
@@ -91,12 +97,17 @@ router.post('/signup', asyncRoute(async (req, res) => {
   };
   const password = String(req.body.password || '');
   const confirm = String(req.body.confirm || '');
+  const photo = req.files && req.files.photo ? checkImage(req.files.photo[0]) : null;
+  const idCard = req.files && req.files.idCard ? checkImage(req.files.idCard[0]) : null;
   if (form.fullName.length < 2) return res.status(400).json({ message: 'Enter your full name.' });
   if (!isEmail(form.email)) return res.status(400).json({ message: 'Enter a valid email.' });
   if (form.studentCode.length < 2) return res.status(400).json({ message: 'Enter an ID number.' });
   if (!validPhone(form.phone)) return res.status(400).json({ message: 'Enter an 11-digit mobile number.' });
   if (password.length < 6) return res.status(400).json({ message: 'Choose a password of at least 6 characters.' });
   if (password !== confirm) return res.status(400).json({ message: 'The two passwords do not match.' });
+  if (photo && photo.error) return res.status(400).json({ message: photo.error });
+  if (!idCard) return res.status(400).json({ message: 'Add a photo of your ID card.' });
+  if (idCard.error) return res.status(400).json({ message: idCard.error });
   if (await User.exists({ email: form.email })) {
     return res.status(400).json({ message: 'That email is already on the hall record.' });
   }
@@ -104,7 +115,23 @@ router.post('/signup', asyncRoute(async (req, res) => {
     return res.status(400).json({ message: 'That ID is already on the hall record.' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await User.create({ ...form, passwordHash, role: 'student', status: 'pending' });
+  const user = await User.create({
+    ...form,
+    passwordHash,
+    role: 'student',
+    status: 'pending',
+    hasPhoto: Boolean(photo),
+    hasIdCard: true
+  });
+  try {
+    const pictures = [{ userId: user._id, kind: 'idCard', ...idCard }];
+    if (photo) pictures.push({ userId: user._id, kind: 'photo', ...photo });
+    await UserImage.insertMany(pictures);
+  } catch (error) {
+    await UserImage.deleteMany({ userId: user._id });
+    await User.deleteOne({ _id: user._id });
+    throw error;
+  }
   await logActivity(user._id, 'Requested an account', form.email);
   res.status(201).json({
     message: 'Request received. You can sign in after the hall office approves the account.'
@@ -124,6 +151,58 @@ router.put('/profile', asyncRoute(async (req, res) => {
   await req.user.save();
   await logActivity(req.user._id, 'Updated profile', fullName);
   res.json({ message: 'Profile saved.', user: presentUser(req.user) });
+}));
+
+router.put('/profile/pictures', acceptImages(pictureFields), asyncRoute(async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: 'Sign in first.' });
+  const photoFile = req.files && req.files.photo ? req.files.photo[0] : null;
+  const cardFile = req.files && req.files.idCard ? req.files.idCard[0] : null;
+  if (!photoFile && !cardFile) return res.status(400).json({ message: 'Choose a picture to save.' });
+  const photo = photoFile ? checkImage(photoFile) : null;
+  const idCard = cardFile ? checkImage(cardFile) : null;
+  if (photo && photo.error) return res.status(400).json({ message: photo.error });
+  if (idCard && idCard.error) return res.status(400).json({ message: idCard.error });
+  if (photo) {
+    await UserImage.findOneAndUpdate(
+      { userId: req.user._id, kind: 'photo' },
+      { userId: req.user._id, kind: 'photo', contentType: photo.contentType, data: photo.data, bytes: photo.bytes },
+      { upsert: true }
+    );
+    req.user.hasPhoto = true;
+  }
+  if (idCard) {
+    await UserImage.findOneAndUpdate(
+      { userId: req.user._id, kind: 'idCard' },
+      { userId: req.user._id, kind: 'idCard', contentType: idCard.contentType, data: idCard.data, bytes: idCard.bytes },
+      { upsert: true }
+    );
+    req.user.hasIdCard = true;
+  }
+  await req.user.save();
+  await logActivity(req.user._id, 'Updated pictures', req.user.fullName);
+  res.json({ message: 'Picture saved.', user: presentUser(req.user) });
+}));
+
+router.get('/media/:id/:kind', asyncRoute(async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: 'Sign in first.' });
+  const kind = req.params.kind === 'photo' ? 'photo' : req.params.kind === 'id-card' ? 'idCard' : null;
+  if (!kind || !mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: 'That picture is not on the record.' });
+  }
+  const self = String(req.user._id) === String(req.params.id);
+  const staffOrAdmin = req.user.role === 'staff' || req.user.role === 'admin';
+  if (kind === 'photo' && !self && !staffOrAdmin) {
+    return res.status(403).json({ message: 'That photo is not yours to open.' });
+  }
+  if (kind === 'idCard' && !self && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'That ID card is not yours to open.' });
+  }
+  const file = await UserImage.findOne({ userId: req.params.id, kind });
+  if (!file) return res.status(404).json({ message: 'That picture is not on the record.' });
+  res.set('Content-Type', file.contentType);
+  res.set('Cache-Control', 'private, no-store');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.send(Buffer.from(file.data));
 }));
 
 module.exports = router;

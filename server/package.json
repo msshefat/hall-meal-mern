@@ -8,7 +8,8 @@
     "dev": "node src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seed.js",
-    "test:money": "node src/money.test.js"
+    "test:money": "node src/money.test.js",
+    "test:images": "node src/images.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -18,6 +19,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "express-session": "^1.18.2",
-    "mongoose": "^8.19.1"
+    "mongoose": "^8.19.1",
+    "multer": "^2.4.0"
   }
 }

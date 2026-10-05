@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const {
-  User, Menu, MealOrder, BazarCost, MealRate, Ledger, Complaint, Announcement, Activity, MoneyRequest
+  User, UserImage, Menu, MealOrder, BazarCost, MealRate, Ledger, Complaint, Announcement, Activity, MoneyRequest
 } = require('../models');
 const { getSettings } = require('../db');
 const { Setting } = require('../models');
@@ -800,7 +800,8 @@ router.delete('/users/:id', requireRole('admin'), asyncRoute(async (req, res) =>
   await Promise.all([
     Ledger.deleteMany({ userId: existing._id }),
     MoneyRequest.deleteMany({ userId: existing._id }),
-    Complaint.deleteMany({ userId: existing._id })
+    Complaint.deleteMany({ userId: existing._id }),
+    UserImage.deleteMany({ userId: existing._id })
   ]);
   await User.deleteOne({ _id: existing._id });
   await logActivity(req.user._id, 'Deleted profile', `${existing.fullName} · ${existing.role}`);

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../App'
-import { Banner, PageHead, Star } from '../Shell'
+import { Banner, PageHead, Portrait, Star } from '../Shell'
 
 const empty = { fullName: '', email: '', role: 'student', studentCode: '', roomNo: '', phone: '', status: 'active', password: '', balance: '0' }
 
@@ -50,6 +50,18 @@ export default function UserForm() {
       <PageHead eyebrow="Directory" title={editing ? 'Edit person' : 'Add person'} lede={editing ? 'Leave the password blank to keep the current one. ID and mobile stay required.' : 'Every person needs an ID and a mobile number. Share the password. They can change it after signing in.'} />
       <form className="panel form-grid narrow" onSubmit={save}>
         <Banner message={error} kind="error" />
+        {editing && form.id ? (
+          <div className="picture-row">
+            <div>
+              <p className="stat-label">Profile photo</p>
+              <Portrait className="portrait is-large" user={form} />
+            </div>
+            <div>
+              <p className="stat-label">ID card</p>
+              {form.hasIdCard ? <a href={`/api/media/${form.id}/id-card`} target="_blank" rel="noreferrer"><img className="id-card" src={`/api/media/${form.id}/id-card`} alt={`ID card for ${form.fullName}`} /></a> : <p className="empty">No ID card on file.</p>}
+            </div>
+          </div>
+        ) : null}
         <label>Full name <Star /><input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
         <label>Email <Star /><input className="form-control" type="email" value={form.email} onChange={set('email')} required /></label>
         <label>Role <Star />
