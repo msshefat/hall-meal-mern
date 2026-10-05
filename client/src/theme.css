@@ -240,10 +240,21 @@ code {
 .auth-card h2 { margin-bottom: 0.8rem; }
 .req-star { color: var(--clay); font-weight: 700; margin-left: 0.15rem; }
 .auth-card label, .form-grid label, .panel label, .lock-card label {
-  display: grid;
-  gap: 0.35rem;
+  display: block;
   margin-bottom: 0.85rem;
   font-size: 0.92rem;
+}
+.auth-card label .form-control,
+.auth-card label .form-select,
+.form-grid label .form-control,
+.form-grid label .form-select,
+.panel label .form-control,
+.panel label .form-select,
+.lock-card label .form-control,
+.lock-card label .form-select {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
 }
 .demo-accounts ul { list-style: none; padding: 0; margin: 0.6rem 0; display: grid; gap: 0.55rem; }
 .demo-accounts li { display: grid; grid-template-columns: 8rem 1fr auto; gap: 0.5rem; align-items: center; }
