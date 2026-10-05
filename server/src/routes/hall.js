@@ -9,7 +9,7 @@ const { Setting } = require('../models');
 const {
   recalculate, postBalance, saveMealFlags, costsOn, logActivity
 } = require('../billing');
-const { taka, fromPaisa, parseMoney } = require('../money');
+const { taka, fromPaisa, parseMoney, inDebt, orderingBlocked } = require('../money');
 const {
   MEALS, MEAL_LABEL, todayDhaka, addDays, prettyDate, weekday, formatTime, prettyStamp,
   greeting, offsetPhrase, weekBounds, monthBounds, eachDate, validDate, describeLock,
@@ -187,9 +187,16 @@ router.get('/orders', requireRole('student'), asyncRoute(async (req, res) => {
   ]);
   const menuMap = new Map(menus.map((row) => [`${row.menuDate}:${row.mealType}`, row.items]));
   const orderMap = new Map(orders.map((row) => [row.orderDate, row]));
+  const paisa = req.user.balancePaisa || 0;
   res.json({
     windowDays,
-    rules: MEALS.map((meal) => `${MEAL_LABEL[meal]} closes at ${formatTime(settings[`${meal}LockTime`])} on ${offsetPhrase(settings[`${meal}LockOffsetDays`])}.`),
+    inDebt: inDebt(paisa),
+    orderingBlocked: orderingBlocked(paisa),
+    balanceLabel: taka(paisa / 100),
+    rules: [
+      ...MEALS.map((meal) => `${MEAL_LABEL[meal]} closes at ${formatTime(settings[`${meal}LockTime`])} on ${offsetPhrase(settings[`${meal}LockOffsetDays`])}.`),
+      'A negative balance can still order meals until it goes past −৳500.'
+    ],
     days: dates.map((date) => {
       const order = orderMap.get(date);
       const meals = MEALS.map((meal) => {
@@ -233,6 +240,9 @@ router.post('/orders/toggle', requireRole('student'), asyncRoute(async (req, res
   const existing = await MealOrder.findOne({ userId: req.user._id, orderDate: date });
   if (existing && existing[`${meal}Taken`]) {
     return res.status(400).json({ message: `${MEAL_LABEL[meal]} is already marked taken, so it cannot be changed.` });
+  }
+  if (turnOn && orderingBlocked(req.user.balancePaisa)) {
+    return res.status(400).json({ message: 'Your balance is past −৳500, so new meals are closed until the hall office adds money.' });
   }
   const flags = {
     breakfast: existing ? existing.breakfast : false,

@@ -70,7 +70,7 @@ export default function Billing() {
         <article className={`stat ${data.due ? 'is-due' : ''}`}>
           <p className="stat-label">{data.due ? 'Amount due' : 'Balance'}</p>
           <p className="stat-value">{data.balanceLabel}</p>
-          <p className="stat-hint">Updated when a meal rate is posted</p>
+          <p className="stat-hint">{data.due ? 'Amount due. New meals close past −৳500.' : 'Updated when a meal rate is posted'}</p>
         </article>
         <article className="stat">
           <p className="stat-label">{data.monthLabel}</p>

@@ -4,7 +4,7 @@ const { User, MoneyRequest } = require('../models');
 const { getSettings } = require('../db');
 const { logActivity } = require('../billing');
 const { clean, isEmail, validPhone, escapeRegex, hallNowLabel } = require('../time');
-const { taka } = require('../money');
+const { taka, inDebt, orderingBlocked } = require('../money');
 
 const router = express.Router();
 
@@ -25,7 +25,9 @@ function presentUser(user) {
     phone: user.phone || '',
     status: user.status,
     balance: paisa / 100,
-    balanceLabel: taka(paisa / 100)
+    balanceLabel: taka(paisa / 100),
+    inDebt: inDebt(paisa),
+    orderingBlocked: orderingBlocked(paisa)
   };
 }
 

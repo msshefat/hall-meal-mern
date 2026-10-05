@@ -30,6 +30,16 @@ function fromPaisa(paisa) {
   return `${sign}${Math.floor(abs / 100)}.${String(abs % 100).padStart(2, '0')}`;
 }
 
+const CREDIT_FLOOR_PAISA = -50000;
+
+function inDebt(balancePaisa) {
+  return (Number(balancePaisa) || 0) < 0;
+}
+
+function orderingBlocked(balancePaisa) {
+  return (Number(balancePaisa) || 0) < CREDIT_FLOOR_PAISA;
+}
+
 function parseMoney(value) {
   if (value === undefined || value === null || String(value).trim() === '') return null;
   const n = Number(String(value).replace(/,/g, ''));
@@ -38,4 +48,4 @@ function parseMoney(value) {
   return { paisa, taka: (paisa / 100).toFixed(2) };
 }
 
-module.exports = { splitRate, taka, fromPaisa, parseMoney };
+module.exports = { splitRate, taka, fromPaisa, parseMoney, CREDIT_FLOOR_PAISA, inDebt, orderingBlocked };

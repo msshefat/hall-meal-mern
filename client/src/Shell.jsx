@@ -90,12 +90,21 @@ export default function Shell() {
           </div>
         </header>
         <main className="content" id="content">
+          <DebtNotice user={auth.user} />
           <Outlet />
         </main>
       </div>
       <div className="scrim" hidden={!open} onClick={() => setOpen(false)} />
     </div>
   )
+}
+
+export function DebtNotice({ user }) {
+  if (!user || user.role !== 'student' || !user.inDebt) return null
+  const text = user.orderingBlocked
+    ? `Your balance is ${user.balanceLabel}. New meals are closed once it goes past −৳500. You can still turn a meal off, and the hall office can add money.`
+    : `Your balance is ${user.balanceLabel}. You can still order meals until it goes past −৳500.`
+  return <p className="callout" role="status">{text}</p>
 }
 
 export function PageHead({ eyebrow, title, lede, children }) {

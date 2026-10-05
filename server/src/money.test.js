@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { splitRate, taka, fromPaisa } = require('./money');
+const { splitRate, taka, fromPaisa, orderingBlocked, inDebt } = require('./money');
 
 assert.deepStrictEqual(
   { rate: splitRate(1000, 3).rate, rounding: splitRate(1000, 3).rounding },
@@ -16,5 +16,9 @@ assert.strictEqual(taka(-40), '-৳40.00');
 assert.strictEqual(taka(12500), '৳12,500.00');
 assert.strictEqual(fromPaisa(33333), '333.33');
 assert.strictEqual(fromPaisa(-4000), '-40.00');
+assert.strictEqual(inDebt(-1), true);
+assert.strictEqual(inDebt(0), false);
+assert.strictEqual(orderingBlocked(-50000), false);
+assert.strictEqual(orderingBlocked(-50001), true);
 
 console.log('money checks passed');
