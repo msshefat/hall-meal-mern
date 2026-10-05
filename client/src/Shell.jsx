@@ -72,7 +72,6 @@ export default function Shell() {
         </nav>
         <div className="sidebar-foot">
           <NavLink to="/app/profile" className={({ isActive }) => `side-link ${isActive ? 'is-active' : ''}`} onClick={() => setOpen(false)}>Profile</NavLink>
-          <NavLink to="/app/password" className={({ isActive }) => `side-link ${isActive ? 'is-active' : ''}`} onClick={() => setOpen(false)}>Password</NavLink>
           <button className="side-link side-button" type="button" onClick={signOut}>Sign out</button>
         </div>
       </aside>

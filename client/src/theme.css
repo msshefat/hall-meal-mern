@@ -267,6 +267,7 @@ code {
   color: var(--ink);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.form-control:disabled { background: var(--cream); color: var(--ink-soft); cursor: not-allowed; }
 .form-control:hover, .form-select:hover { border-color: #cbbd9f; }
 .form-control:focus, .form-select:focus {
   border-color: var(--brass);

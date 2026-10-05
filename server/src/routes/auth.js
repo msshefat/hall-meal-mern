@@ -109,19 +109,11 @@ router.post('/signup', asyncRoute(async (req, res) => {
 router.put('/profile', asyncRoute(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Sign in first.' });
   const fullName = clean(req.body.fullName, 120);
-  const studentCode = clean(req.body.studentCode, 40);
   const roomNo = clean(req.body.roomNo, 40);
   const phone = clean(req.body.phone, 30);
   if (fullName.length < 2) return res.status(400).json({ message: 'Enter your full name.' });
-  if (studentCode.length < 2) return res.status(400).json({ message: 'Enter an ID number.' });
   if (!validPhone(phone)) return res.status(400).json({ message: 'Enter an 11-digit mobile number.' });
-  const clash = await User.findOne({
-    _id: { $ne: req.user._id },
-    studentCode: { $regex: `^${escapeRegex(studentCode)}$`, $options: 'i' }
-  });
-  if (clash) return res.status(400).json({ message: 'That ID is already on the hall record.' });
   req.user.fullName = fullName;
-  req.user.studentCode = studentCode;
   req.user.roomNo = roomNo;
   req.user.phone = phone;
   await req.user.save();
