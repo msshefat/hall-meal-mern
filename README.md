@@ -6,6 +6,8 @@ Students turn breakfast, lunch, and dinner on or off before a cutoff. Mess staff
 
 New students request an account with a name, email, ID, mobile number, and password. A star marks every required field. They can sign in only after an administrator approves the request. Anyone who is signed in can edit their own name, room, mobile number, and password from Profile. An ID can be changed only by an administrator.
 
+A student can ask to add money from Expenses. The amount is credited only after an administrator approves it on Balances.
+
 After a person eats, mess staff search that ID on Meal taken and mark the meal served. That meal stays on the list and cannot be taken a second time the same day. Students cannot switch a taken meal off.
 
 The earlier MySQL version stays in its own repository: [hall-meal](https://github.com/msshefat/hall-meal).
@@ -38,7 +40,7 @@ The rate calculation uses a short lock so two saves cannot charge the same meal 
 
 MongoDB চালু রাখো। `.env.example` কপি করে `.env` বানাও। তারপর `npm install`, `npm install --prefix server`, `npm install --prefix client`, `npm run seed`, `npm run dev`। ব্রাউজারে `http://127.0.0.1:47240` খুলো।
 
-সাইনআপে ID আর মোবাইল নম্বর বাধ্যতামূলক, তারার চিহ্ন লাগানো ফিল্ড বাধ্যতামূলক। সাইন ইন করে Profile থেকে নিজের নাম, রুম, মোবাইল, আর পাসওয়ার্ড বদলানো যায়। ID শুধু অ্যাডমিন বদলাতে পারে। কেউ খেয়ে ফেললে স্টাফ Meal taken পেজে ID দিয়ে খুঁজে সেই মিল Taken করে দেবে, দ্বিতীয়বার সেই মিল নেওয়া যাবে না।
+সাইনআপে ID আর মোবাইল নম্বর বাধ্যতামূলক, তারার চিহ্ন লাগানো ফিল্ড বাধ্যতামূলক। সাইন ইন করে Profile থেকে নিজের নাম, রুম, মোবাইল, আর পাসওয়ার্ড বদলানো যায়। ID শুধু অ্যাডমিন বদলাতে পারে। স্টুডেন্ট টাকা যোগ করার অনুরোধ পাঠাতে পারে; অ্যাডমিন অনুমোদন করলে তবেই অ্যাকাউন্টে যোগ হয়। কেউ খেয়ে ফেললে স্টাফ Meal taken পেজে ID দিয়ে খুঁজে সেই মিল Taken করে দেবে, দ্বিতীয়বার সেই মিল নেওয়া যাবে না।
 
 ## Demonstration accounts
 

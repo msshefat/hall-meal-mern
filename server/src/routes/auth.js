@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { User, MoneyRequest } = require('../models');
 const { getSettings } = require('../db');
 const { logActivity } = require('../billing');
 const { clean, isEmail, validPhone, escapeRegex, hallNowLabel } = require('../time');
@@ -32,14 +32,17 @@ function presentUser(user) {
 async function sessionPayload(req) {
   const settings = await getSettings();
   let pendingSignups = 0;
+  let pendingDeposits = 0;
   if (req.user && req.user.role === 'admin') {
     pendingSignups = await User.countDocuments({ status: 'pending' });
+    pendingDeposits = await MoneyRequest.countDocuments({ status: 'pending' });
   }
   return {
     user: presentUser(req.user),
     hallName: settings.hallName,
     hallNow: hallNowLabel(),
-    pendingSignups
+    pendingSignups,
+    pendingDeposits
   };
 }
 

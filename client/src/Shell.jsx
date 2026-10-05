@@ -67,6 +67,7 @@ export default function Shell() {
             <NavLink key={to} to={to} end={Boolean(end)} className={({ isActive }) => `side-link ${isActive ? 'is-active' : ''}`} onClick={() => setOpen(false)}>
               {label}
               {to === '/app/users' && auth.pendingSignups > 0 ? <span className="nav-count">{auth.pendingSignups}</span> : null}
+              {to === '/app/balances' && auth.pendingDeposits > 0 ? <span className="nav-count">{auth.pendingDeposits}</span> : null}
             </NavLink>
           ))}
         </nav>

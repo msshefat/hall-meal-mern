@@ -95,6 +95,7 @@ function AdminHome({ data, name }) {
         <Link className="btn btn-primary" to="/app/settings">Change lock times</Link>
       </PageHead>
       {data.users.pending ? <p className="callout"><strong>{data.users.pending}</strong> student signup {data.users.pending === 1 ? 'request is' : 'requests are'} waiting. <Link to="/app/users">Review and approve</Link></p> : null}
+      {data.depositRequests ? <p className="callout"><strong>{data.depositRequests}</strong> add-money {data.depositRequests === 1 ? 'request is' : 'requests are'} waiting. <Link to="/app/balances">Review and approve</Link></p> : null}
       <section className="stat-grid">
         <article className="stat"><p className="stat-label">Active students</p><p className="stat-value">{data.users.students}</p><p className="stat-hint">{data.users.pending} waiting · {data.users.inactive} inactive · {data.users.staff} staff</p></article>
         <article className="stat"><p className="stat-label">Breakfast on</p><p className="stat-value">{data.counts.breakfast}</p><p className="stat-hint">Lunch {data.counts.lunch} · Dinner {data.counts.dinner}</p></article>

@@ -32,7 +32,8 @@ function AuthProvider({ children }) {
     user: null,
     hallName: 'Residential Hall',
     hallNow: '',
-    pendingSignups: 0
+    pendingSignups: 0,
+    pendingDeposits: 0
   })
   const refresh = useCallback(async () => {
     const data = await api.get('/api/me')

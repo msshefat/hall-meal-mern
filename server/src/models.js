@@ -99,6 +99,15 @@ const announcementSchema = new mongoose.Schema({
   publishedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
+const moneyRequestSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  amountPaisa: { type: Number, required: true },
+  note: { type: String, default: '' },
+  status: { type: String, enum: ['pending', 'approved', 'declined'], default: 'pending' },
+  handledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  handledAt: Date
+}, { timestamps: true });
+
 const activitySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   action: { type: String, required: true },
@@ -120,6 +129,7 @@ module.exports = {
   Ledger: mongoose.model('Ledger', ledgerSchema),
   Complaint: mongoose.model('Complaint', complaintSchema),
   Announcement: mongoose.model('Announcement', announcementSchema),
+  MoneyRequest: mongoose.model('MoneyRequest', moneyRequestSchema),
   Activity: mongoose.model('Activity', activitySchema),
   Lock: mongoose.model('Lock', lockSchema)
 };

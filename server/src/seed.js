@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { connectDb } = require('./db');
 const {
-  User, Menu, Complaint, Announcement, Activity, MealOrder, BazarCost, MealRate, Ledger
+  User, Menu, Complaint, Announcement, Activity, MealOrder, BazarCost, MealRate, Ledger, MoneyRequest
 } = require('./models');
 const { postBalance, saveMealFlags, recalculate } = require('./billing');
 const { todayDhaka, addDays } = require('./time');
@@ -44,6 +44,7 @@ function atDhaka(iso, time) {
 async function clearDemo() {
   await Promise.all([
     Activity.deleteMany({}),
+    MoneyRequest.deleteMany({}),
     Complaint.deleteMany({}),
     Announcement.deleteMany({}),
     Ledger.deleteMany({}),

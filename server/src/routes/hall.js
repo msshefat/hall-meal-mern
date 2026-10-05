@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const {
-  User, Menu, MealOrder, BazarCost, MealRate, Ledger, Complaint, Announcement, Activity
+  User, Menu, MealOrder, BazarCost, MealRate, Ledger, Complaint, Announcement, Activity, MoneyRequest
 } = require('../models');
 const { getSettings } = require('../db');
 const { Setting } = require('../models');
@@ -132,11 +132,12 @@ async function staffHome(today, settings) {
 }
 
 async function adminHome(today, settings) {
-  const [students, staff, inactive, pending] = await Promise.all([
+  const [students, staff, inactive, pending, depositRequests] = await Promise.all([
     User.countDocuments({ role: 'student', status: 'active' }),
     User.countDocuments({ role: 'staff', status: 'active' }),
     User.countDocuments({ status: 'inactive' }),
-    User.countDocuments({ status: 'pending' })
+    User.countDocuments({ status: 'pending' }),
+    MoneyRequest.countDocuments({ status: 'pending' })
   ]);
   const orders = await MealOrder.find({ orderDate: today });
   const counts = { breakfast: 0, lunch: 0, dinner: 0 };
@@ -152,6 +153,7 @@ async function adminHome(today, settings) {
     greeting: greeting(),
     todayLabel: prettyDate(today),
     users: { students, staff, inactive, pending },
+    depositRequests,
     counts,
     openComplaints,
     lowCount,
@@ -287,11 +289,13 @@ router.get('/billing', requireRole('student'), asyncRoute(async (req, res) => {
   });
   const spent = monthRows.reduce((sum, row) => sum + (row.entryType === 'meal_charge' ? row.amountPaisa : -row.amountPaisa), 0);
   const fresh = await User.findById(req.user._id);
+  const requests = await MoneyRequest.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(20);
   res.json({
     balanceLabel: taka((fresh.balancePaisa || 0) / 100),
     due: (fresh.balancePaisa || 0) < 0,
     monthLabel: month.label,
     monthSpent: taka(spent / 100),
+    requests: requests.map(presentDeposit),
     entries: rows.map((row) => ({
       id: String(row._id),
       when: prettyStamp(row.createdAt),
@@ -301,6 +305,21 @@ router.get('/billing', requireRole('student'), asyncRoute(async (req, res) => {
       amountLabel: `${row.direction === 'credit' ? '+' : '−'}${taka(row.amountPaisa / 100)}`
     }))
   });
+}));
+
+router.post('/deposits', requireRole('student'), asyncRoute(async (req, res) => {
+  const money = parseMoney(req.body.amount);
+  const note = clean(req.body.note, 240);
+  if (!money || money.error || money.paisa <= 0) {
+    return res.status(400).json({ message: 'Enter an amount above zero.' });
+  }
+  const waiting = await MoneyRequest.countDocuments({ userId: req.user._id, status: 'pending' });
+  if (waiting >= 3) {
+    return res.status(400).json({ message: 'You already have requests waiting. The hall office will review them first.' });
+  }
+  await MoneyRequest.create({ userId: req.user._id, amountPaisa: money.paisa, note, status: 'pending' });
+  await logActivity(req.user._id, 'Requested add money', taka(money.paisa / 100));
+  res.status(201).json({ message: `Request for ${taka(money.paisa / 100)} sent. It is added only after the hall office approves it.` });
 }));
 
 router.get('/stats', requireRole('student'), asyncRoute(async (req, res) => {
@@ -812,11 +831,51 @@ router.post('/settings', requireRole('admin'), asyncRoute(async (req, res) => {
 router.get('/balances', requireRole('admin'), asyncRoute(async (req, res) => {
   const q = clean(req.query.q, 80).toLowerCase();
   const students = await User.find({ role: 'student', status: { $ne: 'pending' } }).sort({ balancePaisa: 1, fullName: 1 });
+  const requests = await MoneyRequest.find({ status: 'pending' }).sort({ createdAt: 1 }).populate('userId', 'fullName studentCode roomNo');
   res.json({
+    requests: requests.map(presentDeposit),
     students: students
       .filter((student) => !q || `${student.fullName} ${student.studentCode} ${student.roomNo}`.toLowerCase().includes(q))
       .map(presentUser)
   });
+}));
+
+router.post('/balances/requests/:id', requireRole('admin'), asyncRoute(async (req, res) => {
+  const decision = req.body.decision === 'decline' ? 'declined' : req.body.decision === 'approve' ? 'approved' : null;
+  if (!decision) return res.status(400).json({ message: 'Choose approve or decline.' });
+  const id = asId(req.params.id);
+  if (!id) return res.status(404).json({ message: 'That request is not on the record.' });
+  const request = await MoneyRequest.findOneAndUpdate(
+    { _id: id, status: 'pending' },
+    { status: decision, handledBy: req.user._id, handledAt: new Date() },
+    { new: true }
+  );
+  if (!request) return res.status(400).json({ message: 'That request was already handled.' });
+  if (decision === 'declined') {
+    const student = await User.findById(request.userId).select('fullName');
+    await logActivity(req.user._id, 'Declined add-money request', student ? student.fullName : 'Student');
+    return res.json({ message: 'The add-money request was declined.' });
+  }
+  const student = await User.findOne({ _id: request.userId, role: 'student' });
+  if (!student) {
+    await MoneyRequest.updateOne({ _id: request._id }, { status: 'declined' });
+    return res.status(400).json({ message: 'That student is no longer on the hall record.' });
+  }
+  try {
+    await postBalance({
+      userId: student._id,
+      entryType: 'deposit',
+      direction: 'credit',
+      amountPaisa: request.amountPaisa,
+      note: request.note ? `Add-money request · ${request.note}` : 'Add-money request',
+      actorId: req.user._id
+    });
+  } catch (error) {
+    await MoneyRequest.updateOne({ _id: request._id }, { status: 'pending', handledBy: null, handledAt: null });
+    throw error;
+  }
+  await logActivity(req.user._id, 'Approved add-money request', `${student.fullName} · ${taka(request.amountPaisa / 100)}`);
+  res.json({ message: `Added ${taka(request.amountPaisa / 100)} to ${student.fullName}.` });
 }));
 
 router.post('/balances', requireRole('admin'), asyncRoute(async (req, res) => {
@@ -852,6 +911,20 @@ router.get('/activity', requireRole('admin'), asyncRoute(async (req, res) => {
     }))
   });
 }));
+
+function presentDeposit(row) {
+  const person = row.userId && row.userId.fullName ? row.userId : null;
+  return {
+    id: String(row._id),
+    amountLabel: taka(row.amountPaisa / 100),
+    note: row.note || '',
+    status: row.status,
+    when: prettyStamp(row.createdAt),
+    fullName: person ? person.fullName : '',
+    studentCode: person ? (person.studentCode || '') : '',
+    roomNo: person ? (person.roomNo || '') : ''
+  };
+}
 
 function presentComplaint(row) {
   return {
