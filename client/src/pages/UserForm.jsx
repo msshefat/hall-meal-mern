@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
+import { useAuth } from '../App'
 import { Banner, PageHead, Star } from '../Shell'
 
 const empty = { fullName: '', email: '', role: 'student', studentCode: '', roomNo: '', phone: '', status: 'active', password: '', balance: '0' }
@@ -8,6 +9,7 @@ const empty = { fullName: '', email: '', role: 'student', studentCode: '', roomN
 export default function UserForm() {
   const { id } = useParams()
   const editing = Boolean(id)
+  const auth = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(empty)
   const [error, setError] = useState('')
@@ -19,6 +21,17 @@ export default function UserForm() {
 
   function set(key) {
     return (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
+  }
+
+  async function remove() {
+    const sure = window.confirm(`Delete ${form.fullName}? Their profile is removed, including meals and balance. This cannot be undone.`)
+    if (!sure) return
+    try {
+      const result = await api.delete(`/api/users/${id}`)
+      navigate('/app/users', { state: { note: result.message } })
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   async function save(event) {
@@ -63,6 +76,7 @@ export default function UserForm() {
         <div className="page-actions">
           <button className="btn btn-primary" type="submit">{editing ? 'Save changes' : 'Create account'}</button>
           <Link className="btn btn-quiet" to="/app/users">Cancel</Link>
+          {editing && id !== auth.user.id ? <button className="btn btn-quiet is-delete" type="button" onClick={remove}>Delete profile</button> : null}
         </div>
       </form>
     </>

@@ -784,6 +784,29 @@ router.put('/users/:id', requireRole('admin'), asyncRoute(async (req, res) => {
   res.json({ message: `${form.fullName} was updated.` });
 }));
 
+router.delete('/users/:id', requireRole('admin'), asyncRoute(async (req, res) => {
+  const existing = await User.findById(asId(req.params.id));
+  if (!existing) return res.status(404).json({ message: 'That person is not on the record.' });
+  if (String(existing._id) === String(req.user._id)) {
+    return res.status(400).json({ message: 'You cannot delete your own profile.' });
+  }
+  const orders = await MealOrder.find({ userId: existing._id }).select('orderDate');
+  const dates = [...new Set(orders.map((order) => order.orderDate))];
+  await MealOrder.deleteMany({ userId: existing._id });
+  for (const date of dates) {
+    const costs = await costsOn(date);
+    for (const meal of costs) await recalculate(date, meal, req.user._id);
+  }
+  await Promise.all([
+    Ledger.deleteMany({ userId: existing._id }),
+    MoneyRequest.deleteMany({ userId: existing._id }),
+    Complaint.deleteMany({ userId: existing._id })
+  ]);
+  await User.deleteOne({ _id: existing._id });
+  await logActivity(req.user._id, 'Deleted profile', `${existing.fullName} · ${existing.role}`);
+  res.json({ message: `${existing.fullName} was deleted.` });
+}));
+
 router.post('/users/:id/status', requireRole('admin'), asyncRoute(async (req, res) => {
   const existing = await User.findById(asId(req.params.id));
   if (!existing) return res.status(404).json({ message: 'That person is not on the record.' });

@@ -26,3 +26,4 @@ export async function api(path, options = {}) {
 api.get = (path) => api(path)
 api.post = (path, body) => api(path, { method: 'POST', body })
 api.put = (path, body) => api(path, { method: 'PUT', body })
+api.delete = (path) => api(path, { method: 'DELETE' })

@@ -18,6 +18,19 @@ export default function Users() {
   useEffect(() => { load('').catch((err) => setError(err.message)) }, [])
   useEffect(() => { if (location.state?.note) setNote(location.state.note) }, [location.state])
 
+  async function remove(person) {
+    const sure = window.confirm(`Delete ${person.fullName}? Their profile is removed, including meals and balance. This cannot be undone.`)
+    if (!sure) return
+    try {
+      const result = await api.delete(`/api/users/${person.id}`)
+      setNote(result.message)
+      await auth.refresh()
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   async function setStatus(id, status) {
     try {
       const result = await api.post(`/api/users/${id}/status`, { status })
@@ -31,7 +44,7 @@ export default function Users() {
 
   return (
     <>
-      <PageHead eyebrow="Directory" title="People" lede="Student signup requests stay off until you approve them. Deactivated accounts remain so old meal charges do not disappear.">
+      <PageHead eyebrow="Directory" title="People" lede="Approve a signup, or delete a profile. You can delete anyone except yourself. Deactivate keeps the account on the record.">
         <Link className="btn btn-primary" to="/app/users/new">Add person</Link>
       </PageHead>
       <Banner message={note} />
@@ -52,6 +65,7 @@ export default function Users() {
                     <td className="row-actions">
                       <button className="is-approve" type="button" onClick={() => setStatus(user.id, 'active')}>Approve</button>
                       <button type="button" onClick={() => setStatus(user.id, 'inactive')}>Decline</button>
+                      <button className="is-delete" type="button" onClick={() => remove(user)}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -81,6 +95,7 @@ export default function Users() {
                     <button type="button" onClick={() => setStatus(user.id, user.status === 'active' ? 'inactive' : 'active')}>
                       {user.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
+                    {user.id === auth.user.id ? null : <button className="is-delete" type="button" onClick={() => remove(user)}>Delete</button>}
                   </td>
                 </tr>
               ))}

@@ -600,6 +600,7 @@ textarea.form-control { min-height: 6rem; resize: vertical; }
 .st-pending { background: #fff1d6; color: var(--brass-deep); }
 .request-panel { margin-bottom: 1rem; border-color: #ead7ae; }
 .row-actions button.is-approve { color: var(--good); font-weight: 700; }
+.row-actions button.is-delete, .btn.is-delete { color: var(--clay); }
 .sheet small { display: block; color: var(--ink-soft); font-size: 0.82rem; }
 .auth-switch { margin: 0.9rem 0 0; color: var(--ink-soft); }
 .auth-switch a { color: var(--forest); font-weight: 700; }
