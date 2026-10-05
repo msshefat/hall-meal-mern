@@ -590,6 +590,8 @@ textarea.form-control { min-height: 6rem; resize: vertical; }
 .tick.is-taken:hover { border-color: var(--line); }
 .serving-card { margin-top: 1rem; }
 .serving-card h2 { margin-bottom: 0.25rem; }
+.serving-person { display: flex; align-items: center; gap: 1rem; margin: 0.2rem 0 1rem; }
+.portrait.is-serving { width: 112px; height: 112px; font-size: 2.2rem; }
 .tick input { accent-color: var(--canopy); }
 
 .bar-row {

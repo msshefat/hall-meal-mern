@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from '../api'
-import { Banner, PageHead, Star } from '../Shell'
+import { Banner, PageHead, Portrait, Star } from '../Shell'
 
 export default function Serving() {
   const [code, setCode] = useState('')
@@ -40,7 +40,7 @@ export default function Serving() {
 
   return (
     <>
-      <PageHead eyebrow="Mess desk" title="Meal taken" lede="Search today's diner by ID. Mark a meal taken once they have eaten, so the same plate cannot be served again." />
+      <PageHead eyebrow="Mess desk" title="Meal taken" lede="Search today's diner by ID. Their profile photo is shown so you can confirm who is at the counter, then mark the meal taken once." />
       <Banner message={note} />
       <Banner message={error} kind="error" />
       <form className="panel form-grid narrow" onSubmit={search}>
@@ -52,8 +52,13 @@ export default function Serving() {
       {result ? (
         <section className="panel serving-card">
           <p className="eyebrow">{result.dateLabel}</p>
-          <h2>{result.person.fullName}</h2>
-          <p className="stat-hint">{result.person.studentCode}{result.person.roomNo ? ` · Room ${result.person.roomNo}` : ''} · {result.person.role}</p>
+          <div className="serving-person">
+            <Portrait className="portrait is-serving" user={result.person} />
+            <div>
+              <h2>{result.person.fullName}</h2>
+              <p className="stat-hint">{result.person.studentCode}{result.person.roomNo ? ` · Room ${result.person.roomNo}` : ''} · {result.person.role}</p>
+            </div>
+          </div>
           <div className="meal-grid">
             {result.meals.map((meal) => {
               const waiting = busy === meal.key

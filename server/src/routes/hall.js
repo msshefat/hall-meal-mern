@@ -551,7 +551,8 @@ router.get('/serving', requireRole('staff', 'admin'), asyncRoute(async (req, res
       studentCode: person.studentCode,
       roomNo: person.roomNo || '',
       role: person.role,
-      phone: person.phone || ''
+      phone: person.phone || '',
+      hasPhoto: Boolean(person.hasPhoto)
     },
     meals: MEALS.map((meal) => ({
       key: meal,
