@@ -13,7 +13,7 @@ export function Landing() {
     <div className="public-wrap" id="content">
       <header className="public-nav">
         <a className="brand brand-light" href="/">
-          <span className="brand-mark" aria-hidden="true">H</span>
+          <img className="brand-mark" src="/bup-logo.png" alt="BUP" />
           <span><strong>HallMeal</strong><small>Residential dining</small></span>
         </a>
         <div className="public-actions">
@@ -104,7 +104,7 @@ export function Login() {
     <div className="auth-shell" id="content">
       <section className="auth-aside">
         <Link className="brand brand-on-dark" to="/">
-          <span className="brand-mark" aria-hidden="true">H</span>
+          <img className="brand-mark" src="/bup-logo.png" alt="BUP" />
           <span><strong>HallMeal</strong><small>{auth.hallName}</small></span>
         </Link>
         <div>
@@ -168,7 +168,7 @@ export function Signup() {
     <div className="auth-shell" id="content">
       <section className="auth-aside">
         <Link className="brand brand-on-dark" to="/">
-          <span className="brand-mark" aria-hidden="true">H</span>
+          <img className="brand-mark" src="/bup-logo.png" alt="BUP" />
           <span><strong>HallMeal</strong><small>{auth.hallName}</small></span>
         </Link>
         <div>

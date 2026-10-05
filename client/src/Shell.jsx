@@ -56,7 +56,7 @@ export default function Shell() {
     <div className="app-shell">
       <aside className={`sidebar ${open ? 'is-open' : ''}`} id="sidebar">
         <a className="brand" href="/app">
-          <span className="brand-mark" aria-hidden="true">H</span>
+          <img className="brand-mark" src="/bup-logo.png" alt="BUP" />
           <span>
             <strong>HallMeal</strong>
             <small>{auth.hallName}</small>

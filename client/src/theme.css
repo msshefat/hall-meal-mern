@@ -120,19 +120,18 @@ code {
 .brand strong { display: block; font-family: var(--serif); font-size: 1.05rem; letter-spacing: 0; font-weight: 700; }
 .brand small { display: block; color: var(--ink-soft); font-size: 0.78rem; }
 .brand-mark {
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: 4px;
-  display: grid;
-  place-items: center;
-  background: var(--forest);
-  color: #f4f1ea;
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: 0.95rem;
+  width: 2.55rem;
+  height: 2.7rem;
+  object-fit: contain;
+  display: block;
+  flex: none;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid rgba(35, 31, 26, 0.08);
 }
 .brand-on-dark, .brand-on-dark small { color: #f4f1ea; }
-.brand-on-dark .brand-mark { background: #f4f1ea; color: var(--forest-deep); }
+.brand-on-dark .brand-mark { background: #fff; }
 
 .public-wrap { max-width: 1180px; margin: 0 auto; padding: 1.2rem 1.2rem 3rem; }
 .public-nav { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; padding: 0.4rem 0 1rem; }
@@ -306,7 +305,7 @@ textarea.form-control { min-height: 6rem; resize: vertical; }
 }
 .sidebar .brand small { color: rgba(244, 241, 234, 0.68); }
 .sidebar .brand { color: white; padding: 0.3rem 0.4rem 0.9rem; }
-.sidebar .brand-mark { background: #f4f1ea; color: var(--forest-deep); }
+.sidebar .brand-mark { background: #fff; border-color: transparent; }
 .side-nav {
   display: grid;
   align-content: start;
