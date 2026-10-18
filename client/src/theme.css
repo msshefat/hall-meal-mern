@@ -705,6 +705,50 @@ blockquote {
   }
 }
 
+.meal-qr {
+  display: grid;
+  justify-items: start;
+  gap: 0.7rem;
+  margin: 0;
+}
+.meal-qr img {
+  width: 220px;
+  height: 220px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem;
+}
+.meal-qr figcaption {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--ink-soft);
+  max-width: 22rem;
+}
+.meal-qr figcaption strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+.meal-card-block { display: grid; gap: 0.45rem; }
+.scan-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.scan-panel { display: grid; gap: 0.75rem; }
+.qr-reader { width: min(100%, 22rem); overflow: hidden; border-radius: 8px; }
+.qr-reader:empty, .qr-reader[hidden] { display: none !important; }
+.qr-reader video, .qr-reader img { width: 100%; border-radius: 8px; }
+.file-btn { position: relative; }
+.file-btn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .form-grid { display: grid; gap: 0.85rem; }
 .public-wait { padding: 2rem; }
 textarea.form-control { min-height: 6rem; resize: vertical; }

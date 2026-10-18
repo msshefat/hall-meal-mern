@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { useAuth } from '../App'
 import { pictureError } from '../pictures'
+import MealQr from '../MealQr'
 import { Banner, PageHead, Portrait, Star } from '../Shell'
 
 export default function Profile() {
@@ -145,6 +146,11 @@ export default function Profile() {
         </div>
         <button className="btn btn-primary" type="submit" disabled={pictureBusy}>{pictureBusy ? 'Saving…' : 'Save pictures'}</button>
       </form>
+      <section className="panel form-grid narrow">
+        <h2>Meal card</h2>
+        <p className="stat-hint">This QR code is unique to your ID. The mess desk scans it on Meal taken, and the search field receives your ID.</p>
+        <MealQr studentCode={auth.user.studentCode} name={auth.user.fullName} />
+      </section>
       <form className="panel form-grid narrow" onSubmit={save}>
         <p className="stat-hint">Signed in as {auth.user.email} · {auth.user.role}</p>
         <label>Full name <Star /><input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>

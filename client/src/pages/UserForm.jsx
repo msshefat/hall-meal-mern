@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../App'
+import MealQr from '../MealQr'
 import { Banner, PageHead, Portrait, Star } from '../Shell'
 
 const empty = { fullName: '', email: '', role: 'student', studentCode: '', roomNo: '', phone: '', status: 'active', password: '', balance: '0' }
@@ -12,11 +13,15 @@ export default function UserForm() {
   const auth = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(empty)
+  const [issuedCode, setIssuedCode] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!id) return
-    api.get(`/api/users/${id}`).then((data) => setForm({ ...empty, ...data.user, password: '', balance: '0' })).catch((err) => setError(err.message))
+    api.get(`/api/users/${id}`).then((data) => {
+      setForm({ ...empty, ...data.user, password: '', balance: '0' })
+      setIssuedCode(data.user.studentCode || '')
+    }).catch((err) => setError(err.message))
   }, [id])
 
   function set(key) {
@@ -60,6 +65,13 @@ export default function UserForm() {
               <p className="stat-label">ID card</p>
               {form.hasIdCard ? <a href={`/api/media/${form.id}/id-card`} target="_blank" rel="noreferrer"><img className="id-card" src={`/api/media/${form.id}/id-card`} alt={`ID card for ${form.fullName}`} /></a> : <p className="empty">No ID card on file.</p>}
             </div>
+          </div>
+        ) : null}
+        {editing && issuedCode ? (
+          <div className="meal-card-block">
+            <p className="stat-label">Meal card</p>
+            <MealQr studentCode={issuedCode} name={form.fullName} />
+            {form.studentCode !== issuedCode ? <p className="stat-hint">Save the new ID before printing a replacement card.</p> : null}
           </div>
         ) : null}
         <label>Full name <Star /><input className="form-control" value={form.fullName} onChange={set('fullName')} required /></label>
