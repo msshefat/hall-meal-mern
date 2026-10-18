@@ -733,9 +733,39 @@ blockquote {
 .meal-card-block { display: grid; gap: 0.45rem; }
 .scan-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .scan-panel { display: grid; gap: 0.75rem; }
-.qr-reader { width: min(100%, 22rem); overflow: hidden; border-radius: 8px; }
-.qr-reader:empty, .qr-reader[hidden] { display: none !important; }
-.qr-reader video, .qr-reader img { width: 100%; border-radius: 8px; }
+.qr-frame {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 4 / 3;
+  background: #231f1a;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.qr-reader {
+  width: 100%;
+  height: 100%;
+}
+.qr-reader video,
+.qr-reader img,
+.qr-reader canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+.qr-frame-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 1rem;
+  color: #f4f1ea;
+  text-align: center;
+  pointer-events: none;
+}
 .file-btn { position: relative; }
 .file-btn input {
   position: absolute;

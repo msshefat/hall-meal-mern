@@ -15,10 +15,11 @@ export default function QrScan({ onCode }) {
   }, [onCode])
 
   useEffect(() => {
+    if (!open) return undefined
     let scanner = null
     let cancelled = false
     import('html5-qrcode').then(({ Html5Qrcode }) => {
-      if (cancelled) return
+      if (cancelled || !document.getElementById(regionId)) return
       scanner = new Html5Qrcode(regionId, { verbose: false })
       scannerRef.current = scanner
     }).catch(() => {})
@@ -31,7 +32,7 @@ export default function QrScan({ onCode }) {
         try { scanner.clear() } catch { /* already cleared */ }
       }).catch(() => {})
     }
-  }, [regionId])
+  }, [open, regionId])
 
   function accept(text) {
     if (handled.current) return true
@@ -62,12 +63,24 @@ export default function QrScan({ onCode }) {
     if (scanner.isScanning) return
     setError('')
     const onHit = (text) => { accept(text) }
-    const config = { fps: 8, qrbox: { width: 220, height: 220 } }
+    const config = {
+      fps: 8,
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const size = Math.max(50, Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72))
+        return { width: size, height: size }
+      }
+    }
     try {
       try {
         await scanner.start({ facingMode: 'environment' }, config, onHit, () => {})
       } catch {
         await scanner.start({ facingMode: 'user' }, config, onHit, () => {})
+      }
+      const video = document.querySelector(`#${CSS.escape(regionId)} video`)
+      if (video) {
+        video.style.width = '100%'
+        video.style.height = '100%'
+        video.style.objectFit = 'cover'
       }
       setCameraOn(true)
     } catch {
@@ -109,9 +122,12 @@ export default function QrScan({ onCode }) {
 
   return (
     <div className="scan-box">
-      <div id={regionId} className="qr-reader" hidden={!open} />
       {open ? (
         <div className="scan-panel">
+          <div className="qr-frame">
+            <div id={regionId} className="qr-reader" />
+            {cameraOn ? null : <p className="qr-frame-label">Camera preview</p>}
+          </div>
           <div className="scan-actions">
             <button className="btn btn-primary" type="button" onClick={startCamera} disabled={cameraOn}>{cameraOn ? 'Camera on' : 'Open camera'}</button>
             <label className="btn btn-quiet file-btn">
@@ -120,7 +136,7 @@ export default function QrScan({ onCode }) {
             </label>
             <button className="btn btn-quiet" type="button" onClick={closeScanner}>Close</button>
           </div>
-          {error ? <p className="banner is-bad" role="status">{error}</p> : <p className="stat-hint">Point the camera at a profile meal card. The ID is written into the search field.</p>}
+          {error ? <p className="banner is-bad" role="status">{error}</p> : <p className="stat-hint">The preview stays in the box above. Hold the meal card inside it.</p>}
         </div>
       ) : (
         <button className="btn btn-quiet" type="button" onClick={() => { handled.current = false; setCameraOn(false); setError(''); setOpen(true) }}>Scan QR</button>
