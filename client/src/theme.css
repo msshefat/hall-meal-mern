@@ -732,6 +732,7 @@ blockquote {
 }
 .meal-card-block { display: grid; gap: 0.45rem; }
 .scan-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.scan-box { flex: 1 0 100%; }
 .scan-panel { display: grid; gap: 0.75rem; }
 .qr-frame {
   position: relative;
